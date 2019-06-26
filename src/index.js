@@ -2,7 +2,13 @@ const express = require("express");
 const userRouter = require("./routers/userRouter");
 const addressRouter = require("./routers/addressRouter");
 const productRouter = require("./routers/productRouter");
-const stockRouter = require("./routers/stockRouter");
+const cartRouter = require("./routers/cartRouter");
+const shipmentRouter = require("./routers/shipmentRouter");
+const paymentRouter = require("./routers/paymentRouter");
+const orderRouter = require("./routers/orderRouter");
+const orderPerCartRouter = require("./routers/orderPerCartRouter");
+const adminDataTrans = require("./routers/adminDataTrans");
+const userDataTrans = require("./routers/userDataTrans");
 const cors = require("cors");
 
 const app = express();
@@ -13,7 +19,13 @@ app.use(cors());
 app.use(userRouter);
 app.use(addressRouter);
 app.use(productRouter);
-app.use(stockRouter);
+app.use(cartRouter);
+app.use(shipmentRouter);
+app.use(paymentRouter);
+app.use(orderRouter);
+app.use(orderPerCartRouter);
+app.use(adminDataTrans);
+app.use(userDataTrans);
 
 //app.use(taskRouter);
 // app.get("/", (req, res) => {

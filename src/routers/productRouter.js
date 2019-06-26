@@ -31,7 +31,7 @@ router.get("/getProduct",  (req, res) => {
 
 
 // Upload Product Image
-const uploadDir = path.join(__dirname + '/../uploads/product_image' )
+const uploadDir = path.join(__dirname + '/../uploads/product_image/' )
 const storagE = multer.diskStorage({
     // Destination
     destination : function(req, file, cb) {
@@ -59,67 +59,44 @@ const upstore = multer ({
 
 // Post Product Data to DB
 router.post("/postProd",  upstore.single('product_image'), async (req, res) => {
-  // agar jika ada kolom yang tidak d udate akan di delete
- Object.keys(req.body).forEach(key=>{
-   if(!req.body[key]){
-     delete req.body[key]
-   }
- })
-
-//  var arrBody = Object.keys(req.body);
-//   // mengubah nilai string kosong menjadi null
-//   arrBody.forEach(key => {
-//     // menghapus field yang tidak memiliki data
-//     if (!req.body[key]) {
-//       req.body[key] = null; // set input kosong dengan null
-//     }
-//   });
-
+ 
   try {
-    //console.log(req.params.userId);
-    // Kondisi jika user update data user tanpa update avatar
-    
-       if(req.file === undefined){
-        //const prodId = req.params.prodId
-        const sql = `INSERT INTO products SET ?`;
-        //const sql = `UPDATE products SET ? WHERE id=${prodId}`
-        const sql3 = `SELECT * FROM products` ;
-        const data = req.body
-          conn.query(sql, data, (err, result)=>{
-            if (err) return res.send(err)
-
-            conn.query(sql3, (err,result)=>{
-              if (err) return res.send (err)
-
-              return res.send(result)
-            })
-         })
-        }else {
+    const {
+      product_stock,
+  product_artist,
+  product_tittle,
+  product_genre,
+  product_desc,
+  product_price,
+    } = req.body;
+   
           // Kondisi jika user update data user beserta avatar
-            //const prodId = req.params.prodId
-            const sql = `INSERT INTO products SET ?`;
+          const sql = `INSERT INTO products SET  
+               
+           product_stock   = '${product_stock}',
+          product_artist   = '${product_artist}',
+          product_tittle  =  '${product_tittle}',
+          product_genre   = '${product_genre}',
+          product_desc   = '${product_desc}',
+          product_price   = '${product_price}',
+          product_image  = '${req.file.filename}'`;
             //const sql = `UPDATE products SET ? WHERE id=${prodId}`
             const sql3 = `SELECT * FROM products `
-            const sql2 = `UPDATE products SET product_image = '${req.file.filename}' `
-            const data = req.body
-            conn.query(sql, data, (err, result)=>{
+            //const sql2 = `UPDATE products SET product_image = '${req.file.filename}' WHERE id=${prodId} `
+            //const data = req.body
+            conn.query(sql, (err, result)=>{
             if (err) return res.send(err)
-            conn.query(sql2, (err,result)=>{
-              if (err) return res.send (err)
               // res.send({filename: req.file.filename})
-              conn.query(sql3, data, (err, result) => {
+              conn.query(sql3, (err, result) => {
                 if (err) return res.send(err)
                 return res.send(result)
              
             })
             
-          })
-         
-
        })
        
    // console.log(req.file);
-       }
+       
        
     
 } catch (e) {
@@ -146,16 +123,34 @@ router.patch(`/updateProd/:prodId/product_image`,  upstore.single('product_image
 //     }
 //   });
 
+const {
+  product_stock,
+product_artist,
+product_tittle,
+product_genre,
+product_desc,
+product_price,
+} = req.body;
+
   try {
     //console.log(req.params.userId);
     // Kondisi jika user update data user tanpa update avatar
     
        if(req.file === undefined){
         const prodId = req.params.prodId
-        const sql = `UPDATE products SET ? WHERE id=${prodId}`
+        const sql = `UPDATE products SET 
+        
+          product_stock   = '${product_stock}',
+          product_artist   = '${product_artist}',
+          product_tittle  =  '${product_tittle}',
+          product_genre   = '${product_genre}',
+          product_desc   = '${product_desc}',
+          product_price   = '${product_price}'
+        
+        WHERE id=${prodId}`
         const sql3 = `SELECT * FROM products WHERE id=${prodId}`
-        const data = req.body
-          conn.query(sql, data, (err, result)=>{
+        //const data = req.body
+          conn.query(sql, (err, result)=>{
             if (err) return res.send(err)
 
             conn.query(sql3, (err,result)=>{
@@ -165,11 +160,11 @@ router.patch(`/updateProd/:prodId/product_image`,  upstore.single('product_image
             })
          })
         }else {
-          // Kondisi jika user update data user beserta avatar
+          // Kondisi jika admin update data product beserta product_image
             const prodId = req.params.prodId
             const sql = `UPDATE products SET ? WHERE id=${prodId}`
             const sql3 = `SELECT * FROM products WHERE id = ${prodId}`
-            const sql2 = `UPDATE products SET product_image = '${req.file.filename}' WHERE id = '${prodId}'`
+            const sql2 = `UPDATE products SET product_image = '${req.file.filename}' WHERE id = ${prodId}`
             const data = req.body
             conn.query(sql, data, (err, result)=>{
             if (err) return res.send(err)
@@ -203,32 +198,44 @@ router.get ("/showProdImg/:image", (req, res)=>{
 })
 
 
-// DELETE USER
-router.delete ("/delete/products", (req, res) => { 
+// DELETE PRODUCT
+router.delete ("/delete/products2", (req, res) => { 
   const sql = `DELETE FROM products WHERE id = ?`
   const data = req.body.id
 
   conn.query(sql, data, (err, result) => {
       if(err) return res.send(err)
 
-      res.send(result)
+      const product_image = result[0].product_image // Get product_image column
+
+      const imgPath = uploadDir + product_image // File location
+
+      fs.unlink(imgPath, err => { // Delete file avatar
+        if (err) return res.send(err)
+        res.send(result)
+      })
+     
   })
 }) 
 
-// DELETE IMAGE ON FOLDER
-router.delete("/delete/prodImg", (req, res) => { 
-  const sql = `SELECT product_image FROM products WHERE id = '${req.body.id}'` // Get avatar column from user
-  const sql2 = `UPDATE products SET product_image = null WHERE id = '${req.body.id}'` // Set null on avatar column
-  const sql3 = `SELECT * FROM products WHERE id = '${req.body.id}'` // Get updated user
+
+// DELETE IMAGE ON FOLDER also COLOUM IN PRODUCT TABLE
+
+router.delete("/delete/products/:prodId", (req, res) => { 
+  const prodId = req.params.prodId
+  const sql = `SELECT product_image FROM products WHERE id = ${prodId}` // Get avatar column from user
+  const sql2 = `DELETE FROM products WHERE id = ${prodId}` // Set null on avatar column
+  //const sql3 = `SELECT * FROM products WHERE id = '${req.body.id}'` // Get updated user
+  const sql3 = `SELECT * FROM products ` // Get updated tabel products
   conn.query(sql, (err, result) => {
       if(err) return res.send(err)
 
-      // const product_image = result[0].product_image // Get avatar column
+      const product_image = result[0].product_image // Get avatar column
 
-      // const imgPath = uploadDir + product_image // File location
-      
-      fs.unlink(`${uploadDir}/${result[0].product_image}`, err => { // Delete file avatar
-      //fs.unlink(imgPath, err => { // Delete file avatar
+      const imgPath = uploadDir + product_image // File location
+      console.log(imgPath);
+      //fs.unlink(`${uploadDir}/${result[0].product_image}`, err => { // Delete file avatar
+      fs.unlink(imgPath, err => { // Delete file avatar
           if (err) return res.send(err)
 
           conn.query(sql2, (err, result) => {
@@ -243,7 +250,7 @@ router.delete("/delete/prodImg", (req, res) => {
           
       })
   })
-}) ,
+}) 
 
 
 

@@ -10,6 +10,7 @@ router.post("/addAddress/:userId", async (req, res) => {
     //const {userId} = req.params
     const sql = "INSERT INTO address SET ? ";
     //const sql = `INSERT INTO address SET ? WHERE user_id = '${userId}'  `;
+    const sql2 = `SELECT * FROM ADDRESS WHERE user_id = ?`;
     const data = req.body;
   
     if (req.body.phone === null) return res.send("please enter phone number");
@@ -18,7 +19,12 @@ router.post("/addAddress/:userId", async (req, res) => {
   
       if (err) return res.send(err);
   
-      res.send(result);
+      conn.query(sql2, data, (err, result) => {
+        if (err) return res.send(err.sqlMessage);
+        res.send(result);
+      });
+
+     
     });
   });
 
