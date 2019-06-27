@@ -68,10 +68,34 @@ router.post("/login", (req, res) => {
   });
 });
 
-// GET DATA USER by Email
-router.get("/getusers", (req, res) => {
-  const email = req.body.email;
-  const sql2 = `SELECT * FROM users WHERE email = '${email}'`;
+// // GET DATA USER by Email Body
+// router.get("/getusers/email", (req, res) => {
+//   const email = req.body.email;
+//   const sql2 = `SELECT * FROM users WHERE email = '${email}'`;
+
+//   conn.query(sql2, (err, result) => {
+//     if (err) return res.send(err.sqlMessage);
+//     return res.send(result);
+//   });
+// });
+
+
+// // GET DATA USER by Username Body
+// router.get("/getusers/username",  (req, res) => {
+//   const username = req.body.username
+//   const sql2 = `SELECT * FROM users WHERE username = '${username}'`;
+
+//   conn.query(sql2, (err, result) => {
+//     if (err) return res.send(err.sqlMessage);
+//     return res.send(result);
+//   });
+// });
+
+
+// GET DATA USER by UserId
+router.get("/getusers/:userId",  (req, res) => {
+  const {userId} = req.params
+  const sql2 = `SELECT * FROM users WHERE id = '${userId}'`;
 
   conn.query(sql2, (err, result) => {
     if (err) return res.send(err.sqlMessage);
@@ -80,10 +104,21 @@ router.get("/getusers", (req, res) => {
 });
 
 
-// GET DATA USER by UserId
-router.get("/getusers/:userId",  (req, res) => {
-  const {userId} = req.params
-  const sql2 = `SELECT * FROM users WHERE id = '${userId}'`;
+// GET DATA USER by Email Params
+router.get("/getusers/email/:email",  (req, res) => {
+  const {email} = req.params
+  const sql2 = `SELECT * FROM users WHERE email = '${email}'`;
+
+  conn.query(sql2, (err, result) => {
+    if (err) return res.send(err.sqlMessage);
+    return res.send(result);
+  });
+});
+
+// GET DATA USER by Username Params
+router.get("/getusers/username/:username",  (req, res) => {
+  const {username} = req.params
+  const sql2 = `SELECT * FROM users WHERE username = '${username}'`;
 
   conn.query(sql2, (err, result) => {
     if (err) return res.send(err.sqlMessage);
@@ -127,6 +162,11 @@ router.patch(`/updateuser/:userId/avatar`,  upstore.single('avatar'), async (req
      delete req.body[key]
    }
  })
+
+
+ if(req.body.password){
+  req.body.password = await bcrypt.hash(req.body.password, 8)
+} 
 
 //  var arrBody = Object.keys(req.body);
 //   // mengubah nilai string kosong menjadi null
@@ -209,7 +249,7 @@ router.get ("/showAvatar/:product_image", (req, res)=>{
 
 
 
-  // Update user data incule password & avatar doni
+  // Update user data incule password & avatar xxx
   router.patch(`/updateuser/:userId/avatar/new`,  upstore.single('avatar'),async (req, res) => {
     const {userId} = req.params
     var arrBody = Object.keys(req.body)
@@ -290,7 +330,7 @@ router.get ("/showAvatar/:product_image", (req, res)=>{
 
 
 
-  //UPDATE PROFILE REY
+  //UPDATE PROFILE yyy
   router.patch('/users/:userid', async (req, res) => {
     var arrBody = Object.keys(req.body)
 
@@ -353,6 +393,29 @@ router.delete("/delete/profile/:userId", (req, res) => {
       })
   })
 }) 
+
+// Delete Avatar/foto pada user yang fotonya disimpan pada file uploads dan nama file nya ditampilkan pada tabel users diset menjadi null
+router.post("/deleteavatar/:userId", (req, res) => {
+  const {userId} = req.params
+  var sql = `SELECT * FROM users WHERE id =  ${userId}`;
+  var sql2 = `UPDATE users SET avatar = "defaultpic.jpg" WHERE id = ${userId}`;
+
+  conn.query(sql, (err, result) => {
+    if (err) return res.send(err);
+
+    fs.unlink(`${uploadDir}/${result[0].avatar}`, err => {
+      if (err) throw err;
+
+      conn.query(sql2, (err, result) => {
+        if (err) return res.send(err);
+
+        res.send(result);
+      });
+      console.log(`${result[0].avatar}, telah dihapus`);
+    });
+  });
+});
+
 
 
 
