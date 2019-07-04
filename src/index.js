@@ -9,6 +9,7 @@ const orderRouter = require("./routers/orderRouter");
 const orderPerCartRouter = require("./routers/orderPerCartRouter");
 const adminDataTrans = require("./routers/adminDataTrans");
 const userDataTrans = require("./routers/userDataTrans");
+const tampilanRouter = require("./routers/tampilanRouter");
 const cors = require("cors");
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(orderRouter);
 app.use(orderPerCartRouter);
 app.use(adminDataTrans);
 app.use(userDataTrans);
+app.use(tampilanRouter);
 
 //app.use(taskRouter);
 // app.get("/", (req, res) => {
